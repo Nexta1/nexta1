@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<style>
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: content-box;
+    }
+    body {
+      padding: 30px;
+    }
+    .slide {
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      /* box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3); */
+    }
+    .slide dt {
+      height: 30px;
+      background: #34495e;
+      color: white;
+      display: flex;
+      align-items: center;
+      padding-left: 10px;
+      cursor: pointer;
+    }
+    .slide dt:first-of-type {
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+    }
+    .slide dd {
+      height: 100px;
+      background: #f1c40f;
+      overflow: hidden;
+    }
+    .slide dd div {
+      padding: 10px;
+    }
+    .slide dd:last-of-type {
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+    }
+  </style>
+  <body>
+    <div class="slide s1">
+      <dt>后盾人</dt>
+      <dd>
+        <div>houdunren.com</div>
+      </dd>
+      <dt>后盾人</dt>
+      <dd>
+        <div>hdcms.com</div>
+      </dd>
+      <dt>后盾人</dt>
+      <dd>
+        <div>hdcms.com</div>
+      </dd>
+    </div>
+
+
+
+    <script>
+        class Animation{
+            constructor(el){
+                //隐藏显示？
+                this.isShow = false;
+                this.el = el;
+                this.defaultHeight = this.height
+            }  
+            //改变判断顺序解决持续增加
+            hide(callback){
+                this.isShow = true;
+                let id = setInterval(() => {
+                    // 改变高度
+                    if(this.height<=0){
+                        clearInterval(id)
+                        callback &&callback()
+                        return;
+                    }
+                    this.height = this.height -1
+                   
+                }, 10);
+                
+            }
+            show(callback){
+                this.isShow = false;
+                let id = setInterval(() => {
+                    if(this.height>= this.defaultHeight){
+                        clearInterval(id)
+                        callback &&callback()
+                        return;
+                    }
+                    // 改变高度
+                    this.height = this.height +1
+                }, 10);
+                
+            }
+            get height(){
+                return  window.getComputedStyle(this.el).height.slice(0,-2)*1
+            }
+            set height(height){
+                this.el.style.height = height+'px'
+            }
+        }
+        class Slide{
+            constructor(el){
+                this.el = document.querySelector(el)
+                this.links = this.el.querySelectorAll('dt')
+                //Dom元素转为对象，执行方法
+                this.panels = [...this.el.querySelectorAll('dd')].map(
+                     item=> new Panel(item));
+                //运行点击事件
+                this.bind()
+
+            }
+            bind(){
+                this.links.forEach((element,i) => {
+                    element.addEventListener('click',()=>{
+                        this.action(i)
+                    })
+                });
+            }
+            //不要复杂嵌套
+            action(i){
+                //关掉其他
+                Panel.hideAll(Panel.filter(this.panels,i),()=>
+                this.panels[i].show()
+                )
+                //打开放到回调函数
+                // this.panels[i].show()
+            }
+        }
+        //面版
+        //对象使用方法
+        class Panel extends Animation{
+            //计数
+            static count =0;
+            //callback解决打开
+            static hideAll(items,callback){
+                if(Panel.count>0) return;
+                items.forEach(item=>{
+                    Panel.count++
+                    item.hide(
+                        ()=>{
+                        //异步
+                        Panel.count--;      
+                    })
+                })
+                callback && callback()
+            }
+            // 排除点击元素
+            static filter(items,i){
+                return items.filter((item,index)=>{
+                    return i !=index
+                })
+            }
+        }
+       let me =new Slide('.s1')
+
+
+        //动画并发问题，异步动画
+        //动画执行结束才能操作
+    </script>
+  </body>
+
+</html>
